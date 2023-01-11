@@ -2,15 +2,14 @@ package confluence
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 )
 
 // Content is a primary resource in Confluence
 type Group struct {
-	Id    int           `json:"id,omitempty"`
+	Id    string        `json:"id,omitempty"`
 	Name  string        `json:"name,omitempty"`
-	Type  string        `json:"type,omitempty",default:"group"`
+	Type  string        `json:"type,omitempty"`
 	Links *GenericLinks `json:"_links,omitempty"`
 }
 
@@ -39,7 +38,7 @@ func (c *Client) GetGroup(id string) (*Group, error) {
 }
 
 func (c *Client) UpdateGroup(group *Group) (*Group, error) {
-	if err := c.DeleteGroup(strconv.Itoa(group.Id)); err != nil {
+	if err := c.DeleteGroup(group.Id); err != nil {
 		return nil, err
 	}
 	return c.CreateGroup(group)

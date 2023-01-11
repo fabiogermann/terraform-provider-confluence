@@ -176,6 +176,15 @@ func (c *Client) do(method, path, contentType string, body *bytes.Buffer, result
 	return bytesBufferJSON(responseBody, result)
 }
 
+func contains[K comparable](s []K, item K) bool {
+	for _, v := range s {
+		if v == item {
+			return true
+		}
+	}
+	return false
+}
+
 // do uses the client to send a specified request
 func (c *Client) doRaw(method, path, contentType string, body *bytes.Buffer) (*bytes.Buffer, error) {
 	fullPath := c.basePath + path
@@ -196,13 +205,13 @@ func (c *Client) doRaw(method, path, contentType string, body *bytes.Buffer) (*b
 		return nil, err
 	}
 	defer resp.Body.Close()
-	expectedStatusCode := map[string]int{
-		"POST":   200,
-		"PUT":    200,
-		"GET":    200,
-		"DELETE": 204,
+	var expectedStatusCode = map[string][]int{
+		"POST":   {200, 201},
+		"PUT":    {200},
+		"GET":    {200},
+		"DELETE": {204},
 	}
-	if resp.StatusCode != expectedStatusCode[method] {
+	if !contains(expectedStatusCode[method], resp.StatusCode) {
 		var responseBody string
 		var errResponse ErrorResponse
 		err = json.NewDecoder(resp.Body).Decode(&errResponse)

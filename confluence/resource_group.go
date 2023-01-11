@@ -1,8 +1,6 @@
 package confluence
 
 import (
-	"strconv"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -18,10 +16,6 @@ func resourceGroup() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"type": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
 			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
@@ -39,13 +33,13 @@ func resourceGroupCreate(d *schema.ResourceData, m interface{}) error {
 	if err != nil {
 		return err
 	}
-	d.SetId(strconv.Itoa(contentResponse.Id))
+	d.SetId(contentResponse.Id)
 	return resourceGroupRead(d, m)
 }
 
 func resourceGroupRead(d *schema.ResourceData, m interface{}) error {
 	client := m.(*Client)
-	contentResponse, err := client.GetGroup(d.Get("id").(string))
+	contentResponse, err := client.GetGroup(d.Id())
 	if err != nil {
 		d.SetId("")
 		return err
@@ -66,7 +60,7 @@ func resourceGroupUpdate(d *schema.ResourceData, m interface{}) error {
 
 func resourceGroupDelete(d *schema.ResourceData, m interface{}) error {
 	client := m.(*Client)
-	err := client.DeleteGroup(d.Get("id").(string))
+	err := client.DeleteGroup(d.Id())
 	if err != nil {
 		return err
 	}
@@ -75,19 +69,16 @@ func resourceGroupDelete(d *schema.ResourceData, m interface{}) error {
 }
 
 func groupFromResourceData(d *schema.ResourceData) *Group {
-	id, _ := strconv.Atoi(d.Id())
 	result := &Group{
-		Id:   id,
-		Type: "group",
+		Id:   d.Id(),
 		Name: d.Get("name").(string),
 	}
 	return result
 }
 
 func updateResourceDataFromGroup(d *schema.ResourceData, space *Group, client *Client) error {
-	d.SetId(strconv.Itoa(space.Id))
+	d.SetId(space.Id)
 	m := map[string]interface{}{
-		"type": space.Type,
 		"name": space.Name,
 	}
 	for k, v := range m {
