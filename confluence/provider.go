@@ -56,6 +56,7 @@ func Provider() *schema.Provider {
 			"confluence_content":    resourceContent(),
 			"confluence_attachment": resourceAttachment(),
 			"confluence_space":      resourceSpace(),
+			"confluence_group":      resourceGroup(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
