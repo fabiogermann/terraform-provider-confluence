@@ -176,15 +176,6 @@ func (c *Client) do(method, path, contentType string, body *bytes.Buffer, result
 	return bytesBufferJSON(responseBody, result)
 }
 
-func contains[K comparable](s []K, item K) bool {
-	for _, v := range s {
-		if v == item {
-			return true
-		}
-	}
-	return false
-}
-
 // do uses the client to send a specified request
 func (c *Client) doRaw(method, path, contentType string, body *bytes.Buffer) (*bytes.Buffer, error) {
 	fullPath := c.basePath + path

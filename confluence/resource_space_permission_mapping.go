@@ -76,21 +76,8 @@ func resourceSpacePermissionMappingRead(d *schema.ResourceData, m interface{}) e
 }
 
 func resourceSpacePermissionMappingUpdate(d *schema.ResourceData, m interface{}) error {
-	client := m.(*Client)
-	contentRequests := spacePermissionMappingFromResourceData(d)
-	spaceKey := d.Get("key").(string)
-	var createdIds []string
-	for _, contentRequest := range contentRequests {
-		contentResponse, err := client.UpdateSpacePermission(spaceKey, contentRequest)
-		if err != nil {
-			d.SetId("")
-			return err
-		}
-		createdIds = append(createdIds, strconv.Itoa(contentResponse.Id))
-	}
-
-	d.SetId(strings.Join(createdIds[:], ":"))
-	return resourceSpacePermissionMappingRead(d, m)
+	resourceSpacePermissionMappingDelete(d, m)
+	return resourceSpacePermissionMappingCreate(d, m)
 }
 
 func resourceSpacePermissionMappingDelete(d *schema.ResourceData, m interface{}) error {
@@ -114,6 +101,9 @@ func spacePermissionMappingFromResourceData(d *schema.ResourceData) []*SpacePerm
 	permissions := make([]string, len(permissionsRaw))
 	for i, raw := range permissionsRaw {
 		permissions[i] = raw.(string)
+	}
+	if contains(permissions, "read:space") {
+		permissions = moveToFirstPositionOfSlice(permissions, "read:space")
 	}
 	for _, permission := range permissions {
 		permissionParts := strings.Split(permission, ":")
