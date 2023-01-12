@@ -35,6 +35,16 @@ resource confluence_space "default" {
   key  = "MYSPACE"
   name   = "My-Space"
 }
+
+resource confluence_group "test_group" {
+  name = "a_group_to_test"
+}
+
+resource confluence_space_permission "read_permission" {
+  key = "MYSPACE"
+  operations = ["read:space", "create:comment"]
+  group = confluence_group.test_group.name
+}
 ```
 
 ## Authentication

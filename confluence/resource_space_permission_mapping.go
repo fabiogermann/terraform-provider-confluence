@@ -102,7 +102,7 @@ func spacePermissionMappingFromResourceData(d *schema.ResourceData) []*SpacePerm
 	for i, raw := range permissionsRaw {
 		permissions[i] = raw.(string)
 	}
-	if contains(permissions, "read:space") {
+	if contains(permissions, "read:space") && len(permissions) > 1 && permissions[0] != "read:space" {
 		permissions = moveToFirstPositionOfSlice(permissions, "read:space")
 	}
 	for _, permission := range permissions {
