@@ -53,10 +53,11 @@ func Provider() *schema.Provider {
 		},
 		DataSourcesMap: map[string]*schema.Resource{},
 		ResourcesMap: map[string]*schema.Resource{
-			"confluence_content":    resourceContent(),
-			"confluence_attachment": resourceAttachment(),
-			"confluence_space":      resourceSpace(),
-			"confluence_group":      resourceGroup(),
+			"confluence_content":          resourceContent(),
+			"confluence_attachment":       resourceAttachment(),
+			"confluence_space":            resourceSpace(),
+			"confluence_group":            resourceGroup(),
+			"confluence_space_permission": resourceSpacePermissionMapping(),
 		},
 		ConfigureFunc: providerConfigure,
 	}
