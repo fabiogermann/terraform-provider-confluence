@@ -1,4 +1,4 @@
-[confluence_space_permission_mapping.md](confluence_space_permission_mapping.md)---
+---
 layout: "confluence"
 page_title: "Confluence: confluence_space_permission_mapping"
 sidebar_current: "docs-confluence-resource-space_permission_mapping"

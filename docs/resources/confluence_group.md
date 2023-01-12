@@ -1,4 +1,4 @@
-[confluence_group.md](confluence_group.md)---
+---
 layout: "confluence"
 page_title: "Confluence: confluence_group"
 sidebar_current: "docs-confluence-resource-group"
