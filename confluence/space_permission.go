@@ -1,9 +1,7 @@
 package confluence
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -114,11 +112,7 @@ type Expandable struct {
 func (c *Client) CreateSpacePermission(spaceKey string, spacePermission *SpacePermission) (*SpacePermission, error) {
 	var response SpacePermission
 	path := fmt.Sprintf("/rest/api/space/%s/permission", spaceKey)
-
-	b, _ := json.Marshal(&spacePermission)
-	log.Printf("[INFO] >>>>>>>>>>> %s", b)
 	if err := c.Post(path, spacePermission, &response); err != nil {
-		log.Printf("[INFO] >>>>>>>>>>> %s", err.Error())
 		return nil, err
 	}
 	return &response, nil
