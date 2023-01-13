@@ -11,15 +11,15 @@ func contains[K comparable](s []K, item K) bool {
 
 func moveToFirstPositionOfSlice[K comparable](slice []K, item K) []K {
 	if len(slice) == 0 || (slice)[0] == item {
-		return nil
+		return slice
 	}
 	if (slice)[len(slice)-1] == item {
 		slice = append([]K{item}, (slice)[:len(slice)-1]...)
-		return nil
+		return slice
 	}
 	for p, x := range slice {
 		if x == item {
-			(slice) = append([]K{item}, append((slice)[:p], (slice)[p+1:]...)...)
+			slice = append([]K{item}, append((slice)[:p], (slice)[p+1:]...)...)
 			break
 		}
 	}

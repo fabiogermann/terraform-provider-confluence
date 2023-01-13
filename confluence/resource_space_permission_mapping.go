@@ -3,6 +3,7 @@ package confluence
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -30,6 +31,7 @@ func resourceSpacePermissionMapping() *schema.Resource {
 			"key": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 			"operations": {
 				Type: schema.TypeList,
@@ -38,10 +40,12 @@ func resourceSpacePermissionMapping() *schema.Resource {
 					ValidateFunc: validation.StringInSlice(validPermissions, false),
 				},
 				Required: true,
+				ForceNew: true,
 			},
 			"group": {
 				Type:     schema.TypeString,
 				Required: true,
+				ForceNew: true,
 			},
 		},
 	}
@@ -59,7 +63,7 @@ func resourceSpacePermissionMappingCreate(d *schema.ResourceData, m interface{})
 		}
 		createdIds = append(createdIds, strconv.Itoa(contentResponse.Id))
 	}
-
+	sort.Strings(createdIds)
 	d.SetId(strings.Join(createdIds[:], ":"))
 	return resourceSpacePermissionMappingRead(d, m)
 }
@@ -136,7 +140,7 @@ func updateResourceDataFromSpacePermissionMapping(d *schema.ResourceData, spaceP
 			}
 		}
 	}
-
+	sort.Strings(permissionIds)
 	d.SetId(strings.Join(permissionIds[:], ":"))
 	return nil
 }
