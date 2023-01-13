@@ -21,7 +21,6 @@ func resourceSpacePermissionMapping() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceSpacePermissionMappingCreate,
 		Read:   resourceSpacePermissionMappingRead,
-		Update: resourceSpacePermissionMappingUpdate,
 		Delete: resourceSpacePermissionMappingDelete,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
@@ -77,11 +76,6 @@ func resourceSpacePermissionMappingRead(d *schema.ResourceData, m interface{}) e
 		return err
 	}
 	return updateResourceDataFromSpacePermissionMapping(d, contentResponse, client)
-}
-
-func resourceSpacePermissionMappingUpdate(d *schema.ResourceData, m interface{}) error {
-	resourceSpacePermissionMappingDelete(d, m)
-	return resourceSpacePermissionMappingCreate(d, m)
 }
 
 func resourceSpacePermissionMappingDelete(d *schema.ResourceData, m interface{}) error {

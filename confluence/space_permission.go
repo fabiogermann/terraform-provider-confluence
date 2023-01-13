@@ -128,13 +128,6 @@ func (c *Client) GetSpacePermission(spaceKey string) (*SummarySpacePermissions, 
 	return &response, nil
 }
 
-func (c *Client) UpdateSpacePermission(spaceKey string, spacePermission *SpacePermission) (*SpacePermission, error) {
-	if err := c.DeleteSpacePermission(spaceKey, spacePermission.Id); err != nil {
-		return nil, err
-	}
-	return c.CreateSpacePermission(spaceKey, spacePermission)
-}
-
 func (c *Client) DeleteSpacePermission(spaceKey string, id int) error {
 	path := fmt.Sprintf("/rest/api/space/%s/permission/%d", spaceKey, id)
 	if err := c.Delete(path); err != nil {
