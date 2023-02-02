@@ -85,12 +85,19 @@ func resourceSpacePermissionMappingDelete(d *schema.ResourceData, m interface{})
 	if err != nil {
 		return err
 	}
-	exportId := getExportSpacePermissionIdFromSpacePermissionMapping(d, contentResponse)
-	for _, permissionID := range strings.Split(d.Id(), ":") {
-		id, _ := strconv.Atoi(permissionID)
-		err := client.DeleteSpacePermission(spaceKey, id)
-		if err != nil && exportId != permissionID {
-			return err
+
+	statePermissions := strings.Split(d.Id(), ":")
+	for _, permission := range contentResponse.Permissions {
+		if permission.Subjects.Group != nil && len(permission.Subjects.Group.Results) > 0 {
+			for _, group := range permission.Subjects.Group.Results {
+				if d.Get("group").(string) == group.Name && contains(statePermissions, strconv.Itoa(permission.ID)) {
+					err := client.DeleteSpacePermission(spaceKey, permission.ID)
+					// log permission.Operation.Operation, permission.Operation.TargetType, permission.ID
+					if err != nil {
+						//log err
+					}
+				}
+			}
 		}
 	}
 
@@ -142,18 +149,4 @@ func updateResourceDataFromSpacePermissionMapping(d *schema.ResourceData, spaceP
 	sort.Strings(permissionIds)
 	d.SetId(strings.Join(permissionIds[:], ":"))
 	return nil
-}
-
-func getExportSpacePermissionIdFromSpacePermissionMapping(d *schema.ResourceData, spacePermissions *SummarySpacePermissions) string {
-	permissionId := ""
-	for _, permission := range spacePermissions.Permissions {
-		if permission.Subjects.Group != nil && len(permission.Subjects.Group.Results) > 0 {
-			for _, group := range permission.Subjects.Group.Results {
-				if d.Get("group").(string) == group.Name && permission.Operation.Operation == "export" && permission.Operation.TargetType == "space" {
-					permissionId = strconv.Itoa(permission.ID)
-				}
-			}
-		}
-	}
-	return permissionId
 }
