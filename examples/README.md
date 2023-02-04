@@ -1,17 +1,9 @@
-# Examples for the Confluence Terraform Provider
+# Examples
 
-To successfully run any of these examples, you must provide information to
-access the confluence API. To make that part easier, a template is provided.
-Copy `secrets.template.env` in the root directory of this repository to
-`secrets.env` and edit the values. Before running any of the examples, source
-this file `source secrets.env`.
+This directory contains examples that are mostly used for documentation, but can also be run/tested manually via the Terraform CLI.
 
-Sourcing the file sets environment variables for CONFLUENCE_SITE,
-CONFLUENCE_USER, CONFLUENCE_TOKEN and CONFLUENCE_SPACE. Environment variables
-are one way to configure provider and resource values. If no other value is
-specified, these environment variables are used as default values. The first
-three are used to configure the confluence provider, and the CONFLUENCE_SPACE is
-used any time a resource needs to specify a space.
+The document generation tool looks for files in the following locations by default. All other *.tf files besides the ones mentioned below are ignored by the documentation tool. This is useful for creating examples that can run and/or ar testable even if some parts are not relevant for the documentation.
 
-Configuring this will also provide the values you need to run acceptance tests
-with `make testacc`.
+* **provider/provider.tf** example file for the provider index page
+* **data-sources/`full data source name`/data-source.tf** example file for the named data source page
+* **resources/`full resource name`/resource.tf** example file for the named data source page

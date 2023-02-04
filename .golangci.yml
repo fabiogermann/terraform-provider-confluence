@@ -1,9 +1,0 @@
-linters:
-  enable:
-    - gofmt
-    - golint
-issues:
-  exclude:
-    - struct field `\w*Id` should be `\w*ID`
-    - method parameter `\w*Id` should be `\w*ID`
-    - var `\w*Id` should be `\w*ID`
