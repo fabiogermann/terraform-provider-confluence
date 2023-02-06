@@ -127,7 +127,7 @@ func (r *SpaceResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	// Get the rule through the API
 	var response transferobjects.Space
-	path := fmt.Sprintf("/rest/api/space/%s", data.Id.ValueString())
+	path := fmt.Sprintf("/rest/api/space/%s", data.Key.ValueString())
 	if err := r.client.Get(path, &response); err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error during request, got error: %s", err))
 		return
@@ -150,7 +150,7 @@ func (r *SpaceResource) Update(ctx context.Context, req resource.UpdateRequest, 
 
 	// Create the rule through API
 	var response transferobjects.Space
-	path := fmt.Sprintf("/rest/api/space/%s", data.Id.ValueString())
+	path := fmt.Sprintf("/rest/api/space/%s", data.Key.ValueString())
 	if err := r.client.Put(path, body, &response, []string{}); err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error during request, got error: \n%s", err))
 		return
@@ -171,7 +171,7 @@ func (r *SpaceResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	}
 
 	// Get the rule through the API
-	path := fmt.Sprintf("/rest/api/space/%s", data.Id.ValueString())
+	path := fmt.Sprintf("/rest/api/space/%s", data.Key.ValueString())
 	if err := r.client.Delete(path); err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error during request, got error: %s", err))
 		return

@@ -28,6 +28,7 @@ type GroupMembershipDataSource struct {
 // GroupMembershipDataSourceModel describes the data source data model.
 type GroupMembershipDataSourceModel struct {
 	GroupId      types.String `tfsdk:"group_id"`
+	GroupName    types.String `tfsdk:"group_name"`
 	GroupMembers types.Map    `tfsdk:"group_members"`
 	Id           types.String `tfsdk:"id"`
 }
@@ -44,7 +45,11 @@ func (d *GroupMembershipDataSource) Schema(ctx context.Context, req datasource.S
 		Attributes: map[string]schema.Attribute{
 			"group_id": schema.StringAttribute{
 				MarkdownDescription: "The Id of the group",
-				Required:            true,
+				Optional:            true,
+			},
+			"group_name": schema.StringAttribute{
+				MarkdownDescription: "The name of the group",
+				Optional:            true,
 			},
 			"group_members": schema.MapAttribute{
 				MarkdownDescription: "The members of the group",
@@ -86,8 +91,27 @@ func (d *GroupMembershipDataSource) Read(ctx context.Context, req datasource.Rea
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
 
+	if data.GroupName.IsNull() && data.GroupId.IsNull() {
+		resp.Diagnostics.AddError("Validation error", "Please provide either group_id or group_name")
+		return
+	}
+	if !data.GroupName.IsNull() && !data.GroupId.IsNull() {
+		resp.Diagnostics.AddError("Validation error", "Please provide only one - either group_id or group_name")
+		return
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
+	}
+
+	if !data.GroupName.IsNull() && data.GroupId.IsNull() {
+		var response transferobjects.Group
+		path := fmt.Sprintf("/rest/api/group/by-name?name=%s", data.GroupName.ValueString())
+		if err := d.client.Get(path, &response); err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error during request, got error: %s", err))
+			return
+		}
+		data.GroupId = types.StringValue(response.Id)
 	}
 
 	// Get the privileges through the API

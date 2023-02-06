@@ -197,6 +197,7 @@ func (r *SpacePermissionResource) Update(ctx context.Context, req resource.Updat
 
 func (r *SpacePermissionResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data *SpacePermissionResourceModel
+	var permissions map[string]string
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -205,14 +206,15 @@ func (r *SpacePermissionResource) Delete(ctx context.Context, req resource.Delet
 		return
 	}
 
+	data.OperationIds.ElementsAs(ctx, &permissions, false)
+
 	// Get the rule through the API
-	for permission, permissionId := range data.OperationIds.Elements() {
-		path := fmt.Sprintf("/rest/api/space/%s/permission/%s", data.Key.ValueString(), permissionId.String())
+	for permission, permissionId := range permissions {
+		path := fmt.Sprintf("/rest/api/space/%s/permission/%s", data.Key.ValueString(), permissionId)
 		if err := r.client.Delete(path); err != nil {
 			errorMsg := fmt.Sprintf("Error while deleting permission [%s][%s]: %s", permission, permissionId, err.Error())
 			tflog.Warn(ctx, errorMsg)
-			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error during request, got error: %s", err))
-			return
+			resp.Diagnostics.AddWarning("Client Error", fmt.Sprintf("Error during request, got error: %s", err))
 		}
 	}
 
