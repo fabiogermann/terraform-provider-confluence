@@ -103,9 +103,8 @@ func (r *GroupMembershipResource) Create(ctx context.Context, req resource.Creat
 	body.AccountID = data.AccountId.ValueString()
 
 	// Create the rule through API
-	var response transferobjects.Group
 	path := fmt.Sprintf("/rest/api/group/userByGroupId?groupId=%s", data.GroupId.ValueString())
-	if err := r.client.Post(path, body, &response, itemsToRemove); err != nil {
+	if err := r.client.Post(path, body, nil, itemsToRemove); err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error during request, got error: \n%s", err))
 		return
 	}
@@ -113,7 +112,7 @@ func (r *GroupMembershipResource) Create(ctx context.Context, req resource.Creat
 	// Save id into the Terraform state.
 	resourceId := fmt.Sprintf("%s%s", data.GroupId.ValueString(), data.AccountId.ValueString())
 	data.Id = types.StringValue(resourceId)
-	
+
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
