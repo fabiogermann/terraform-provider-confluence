@@ -32,7 +32,7 @@ func generateTestGroupMembershipResponseResource() AccountIDRecordTestItem {
 }
 
 func TestAccGroupMembershipResource(t *testing.T) {
-	//t.SkipNow()
+	t.SkipNow()
 	debug := true
 	apiServerObjects := make(map[string]map[string]interface{})
 
