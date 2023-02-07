@@ -166,7 +166,7 @@ func (r *GroupMembershipResource) Delete(ctx context.Context, req resource.Delet
 	}
 
 	// Get the rule through the API
-	path := fmt.Sprintf("/rest/api/group/userByGroupId?groupId=%s", data.GroupId.ValueString())
+	path := fmt.Sprintf("/rest/api/group/userByGroupId?groupId=%s&accountId=%s", data.GroupId.ValueString(), data.AccountId.ValueString())
 	if err := r.client.Delete(path); err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error during request, got error: %s", err))
 		return
