@@ -149,12 +149,13 @@ func (p *ConfluenceProvider) Resources(ctx context.Context) []func() resource.Re
 		NewGroupResource,
 		NewSpaceResource,
 		NewSpacePermissionResource,
+		NewGroupMembershipResource,
 	}
 }
 
 func (p *ConfluenceProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
-		NewPrivilegesDataSource,
+		NewGroupMembershipDataSource,
 	}
 }
 

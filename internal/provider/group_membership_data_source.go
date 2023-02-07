@@ -16,7 +16,7 @@ import (
 // Ensure provider defined types fully satisfy framework interfaces
 var _ datasource.DataSource = &GroupMembershipDataSource{}
 
-func NewPrivilegesDataSource() datasource.DataSource {
+func NewGroupMembershipDataSource() datasource.DataSource {
 	return &GroupMembershipDataSource{}
 }
 
