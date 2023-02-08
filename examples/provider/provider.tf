@@ -1,6 +1,5 @@
 provider "confluence" {
-  hostname = "cluster.found.io"
-  port     = 9243
-  user     = "elastic"
-  password = "password"
+  site  = "company.atlassian.net"
+  user  = "user@domain.com"
+  token = "apikey"
 }
