@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 )
 
-func generateTestExceptionItem() transferobjects.Space {
+func generateTestSpaceObject() transferobjects.Space {
 	base := transferobjects.Space{
 		Id:   123,
 		Name: "asdasd",
@@ -48,8 +48,8 @@ func TestSpaceResourceResource(t *testing.T) {
 	}
 
 	svr.SetSplice("/rest/api/space", func(a string, b []byte) (string, map[string]interface{}) {
-		id := generateTestExceptionItem().Id
-		jsonStr, _ := json.Marshal(generateTestExceptionItem())
+		id := generateTestSpaceObject().Id
+		jsonStr, _ := json.Marshal(generateTestSpaceObject())
 		var obj map[string]interface{}
 		_ = json.Unmarshal(jsonStr, &obj)
 		return id.String(), obj
@@ -64,10 +64,10 @@ func TestSpaceResourceResource(t *testing.T) {
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccExceptionItemResourceConfig(generateTestExceptionItem(), "test"),
+				Config: testAccExceptionItemResourceConfig(generateTestSpaceObject(), "test"),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					fakeserver.TestAccCheckRestapiObjectExists("confluence_space.test", "id", client),
-					resource.TestCheckResourceAttr("confluence_space.test", "key", generateTestExceptionItem().Key),
+					resource.TestCheckResourceAttr("confluence_space.test", "key", generateTestSpaceObject().Key),
 				),
 			},
 			// ImportState testing
@@ -83,9 +83,9 @@ func TestSpaceResourceResource(t *testing.T) {
 			},
 			// Update and Read testing
 			{
-				Config: testAccExceptionItemResourceConfig(generateTestExceptionItem(), "test"),
+				Config: testAccExceptionItemResourceConfig(generateTestSpaceObject(), "test"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("confluence_space.test", "key", generateTestExceptionItem().Key),
+					resource.TestCheckResourceAttr("confluence_space.test", "key", generateTestSpaceObject().Key),
 				),
 			},
 			// Delete testing automatically occurs in TestCase

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"terraform-provider-confluence/internal/helpers"
@@ -115,21 +116,14 @@ func (d *GroupMembershipDataSource) Read(ctx context.Context, req datasource.Rea
 	}
 
 	// Get the privileges through the API
-	var response transferobjects.GroupMembersResponse
-	path := fmt.Sprintf("/rest/api/group/%s/membersByGroupId", data.GroupId.ValueString())
-	if err := d.client.Get(path, &response); err != nil {
+	var elements, err = getMembersWithPagination(d, data.GroupId.ValueString())
+	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Error during request, got error: %s", err))
 		return
 	}
 
 	// Save id into the Terraform state.
 	data.Id = types.StringValue(helpers.Sha256String(data.GroupId.ValueString()))
-
-	var elements = make(map[string]attr.Value)
-
-	for _, member := range response.Members {
-		elements[member.Email] = types.StringValue(member.AccountID)
-	}
 
 	data.GroupMembers, _ = types.MapValue(types.StringType, elements)
 
@@ -138,4 +132,34 @@ func (d *GroupMembershipDataSource) Read(ctx context.Context, req datasource.Rea
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func getMembersWithPagination(d *GroupMembershipDataSource, groupId string) (map[string]attr.Value, error) {
+	limit := 200
+	size := 999
+	var elements = make(map[string]attr.Value)
+	totalSize := 0
+
+	// while we return the max amount of records
+	for size >= limit {
+		offset := len(elements)
+		var response transferobjects.GroupMembersResponse
+		path := fmt.Sprintf("/rest/api/group/%s/membersByGroupId?limit=%d&start=%d&shouldReturnTotalSize=true", groupId, limit, offset)
+		if err := d.client.Get(path, &response); err != nil {
+			return make(map[string]attr.Value), err
+		}
+
+		for _, member := range response.Members {
+			elements[member.Email] = types.StringValue(member.AccountID)
+		}
+		size = response.Size
+		limit = response.Limit
+		totalSize = response.TotalSize
+	}
+
+	if totalSize != len(elements) {
+		return elements, errors.New("consistency could not be guaranteed - expected members != actual members")
+	}
+
+	return elements, nil
 }
