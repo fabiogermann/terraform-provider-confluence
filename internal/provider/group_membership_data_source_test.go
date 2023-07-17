@@ -3,6 +3,7 @@ package provider
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"os"
 	"terraform-provider-confluence/internal/fakeserver"
@@ -12,16 +13,73 @@ import (
 
 var (
 	testGroupId = "testid"
-	testBody    = `
-    {
-  "results": [
+)
+
+func TestAccPrivilegesDataSource(t *testing.T) {
+	debug := true
+	apiServerObjects := make(map[string]map[string]interface{})
+	testSpaceObject := generateTestSpaceObject()
+
+	svr := fakeserver.NewFakeServer(testPost, apiServerObjects, true, debug, "")
+	test_url := fmt.Sprintf(`http://%s:%d`, testHost, testPost)
+	os.Setenv("REST_API_URI", test_url)
+
+	path := fmt.Sprintf("/rest/api/group/%s/membersByGroupId", testGroupId)
+	setSliceA(svr, path, testSpaceObject.Id.String())
+
+	resource.Test(t, resource.TestCase{
+		PreCheck: func() {
+			testAccPreCheck(t)
+			svr.StartInBackground()
+		},
+		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
+		Steps: []resource.TestStep{
+			// Read testing
+			{
+				Config: testAccPrivilegesDataSourceConfig("test", testGroupId),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.confluence_group_membership.test", "id", helpers.Sha256String(testGroupId)),
+				),
+			},
+		},
+	})
+}
+
+func testAccPrivilegesDataSourceConfig(name string, groupId string) string {
+	return fmt.Sprintf(`%s
+data "confluence_group_membership" "%s" {
+	group_id = "%s"
+}
+`, providerConfig, name, groupId)
+}
+
+func setSliceA(svr *fakeserver.Fakeserver, path string, id string) {
+	svr.SetSplice(path, func(a string, b []byte) (string, map[string]interface{}) {
+		var obj map[string]interface{}
+		_ = json.Unmarshal([]byte(generateGroupMembersResponseJson(0, 200, 200, 201)), &obj)
+		setSliceB(svr, path, id)
+		return id, obj
+	})
+}
+func setSliceB(svr *fakeserver.Fakeserver, path string, id string) {
+	svr.SetSplice(path, func(a string, b []byte) (string, map[string]interface{}) {
+		var obj map[string]interface{}
+		_ = json.Unmarshal([]byte(generateGroupMembersResponseJson(200, 200, 1, 201)), &obj)
+		setSliceA(svr, path, id)
+		return id, obj
+	})
+}
+
+func generateGroupMembersResponseJson(start int, limit int, size int, totalSize int) string {
+
+	testSingleUserRecord := `
     {
       "type": "known",
-      "username": "<string>",
+      "username": "%s",
       "userKey": "<string>",
-      "accountId": "<string>",
+      "accountId": "%s",
       "accountType": "atlassian",
-      "email": "<string>",
+      "email": "%s",
       "publicName": "<string>",
       "profilePicture": {
         "path": "<string>",
@@ -193,55 +251,31 @@ var (
       },
       "_links": {}
     }
-  ],
-  "start": 0,
-  "limit": 200,
-  "size": 1,
-  "totalSize": 150,
+`
+	users := ""
+	if size <= 0 {
+		users = ""
+	} else if size == 1 {
+		id := uuid.New().String()
+		users = fmt.Sprintf(testSingleUserRecord, id, id, id)
+	} else {
+		id := uuid.New().String()
+		users = fmt.Sprintf(testSingleUserRecord, id, id, id)
+		for i := 1; i < size; i++ {
+			id = uuid.New().String()
+			users = users + "," + fmt.Sprintf(testSingleUserRecord, id, id, id)
+		}
+	}
+
+	testBody := `
+    {
+  "results": [%s],
+  "start": %d,
+  "limit": %d,
+  "size": %d,
+  "totalSize": %d,
   "_links": {}
 }
   `
-)
-
-func TestAccPrivilegesDataSource(t *testing.T) {
-	debug := true
-	apiServerObjects := make(map[string]map[string]interface{})
-
-	svr := fakeserver.NewFakeServer(testPost, apiServerObjects, true, debug, "")
-	test_url := fmt.Sprintf(`http://%s:%d`, testHost, testPost)
-	os.Setenv("REST_API_URI", test_url)
-
-	path := fmt.Sprintf("/rest/api/group/%s/membersByGroupId", testGroupId)
-
-	svr.SetSplice(path, func(a string, b []byte) (string, map[string]interface{}) {
-		id := generateTestExceptionItem().Id
-		var obj map[string]interface{}
-		_ = json.Unmarshal([]byte(testBody), &obj)
-		return id.String(), obj
-	})
-
-	resource.Test(t, resource.TestCase{
-		PreCheck: func() {
-			testAccPreCheck(t)
-			svr.StartInBackground()
-		},
-		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
-		Steps: []resource.TestStep{
-			// Read testing
-			{
-				Config: testAccPrivilegesDataSourceConfig("test", testGroupId),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.confluence_group_membership.test", "id", helpers.Sha256String(testGroupId)),
-				),
-			},
-		},
-	})
-}
-
-func testAccPrivilegesDataSourceConfig(name string, groupId string) string {
-	return fmt.Sprintf(`%s
-data "confluence_group_membership" "%s" {
-	group_id = "%s"
-}
-`, providerConfig, name, groupId)
+	return fmt.Sprintf(testBody, users, start, limit, size, totalSize)
 }

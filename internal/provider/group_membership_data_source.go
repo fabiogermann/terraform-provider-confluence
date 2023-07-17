@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"terraform-provider-confluence/internal/helpers"
@@ -137,12 +138,13 @@ func getMembersWithPagination(d *GroupMembershipDataSource, groupId string) (map
 	limit := 200
 	size := 999
 	var elements = make(map[string]attr.Value)
+	totalSize := 0
 
 	// while we return the max amount of records
 	for size >= limit {
 		offset := len(elements)
 		var response transferobjects.GroupMembersResponse
-		path := fmt.Sprintf("/rest/api/group/%s/membersByGroupId?limit=%d&start=%d", groupId, limit, offset)
+		path := fmt.Sprintf("/rest/api/group/%s/membersByGroupId?limit=%d&start=%d&shouldReturnTotalSize=true", groupId, limit, offset)
 		if err := d.client.Get(path, &response); err != nil {
 			return make(map[string]attr.Value), err
 		}
@@ -152,6 +154,11 @@ func getMembersWithPagination(d *GroupMembershipDataSource, groupId string) (map
 		}
 		size = response.Size
 		limit = response.Limit
+		totalSize = response.TotalSize
+	}
+
+	if totalSize != len(elements) {
+		return elements, errors.New("consistency could not be guaranteed - expected members != actual members")
 	}
 
 	return elements, nil
